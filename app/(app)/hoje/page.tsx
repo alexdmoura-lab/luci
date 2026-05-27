@@ -12,6 +12,8 @@ import {
 import { workoutId } from '@/lib/workout-id';
 import { getDailyLog, getOverrides, getWorkoutLogs } from '@/lib/queries';
 import { DAY_LABELS, DAY_INITIALS } from '@/lib/day-helpers';
+import { createClient } from '@/lib/supabase/server';
+import { stravaConfigured } from '@/lib/strava/tokens';
 
 import { Card } from '@/components/ui/card';
 import { HeroQuestion } from '@/components/ui/hero-question';
@@ -20,6 +22,7 @@ import { type DayDot } from '@/components/ui/day-dots';
 import { WorkoutIcon } from '@/components/ui/workout-icon';
 import { Countdown } from '@/components/chrome/countdown';
 import { MorningCheckin } from '@/components/today/morning-checkin';
+import { StravaBanner } from '@/components/today/strava-banner';
 import { MorningHero } from './morning-hero';
 import { SupplementChecklist } from './supplement-checklist';
 import { StatGrid } from './stat-grid';
@@ -77,11 +80,15 @@ export default async function HojePage({
     d.items.map((it, i) => ({ id: workoutId(weekNum, d.d, i), type: it.type, day: d.d }))
   ).filter((x) => x.type !== 'rest');
 
-  const [logs, overrides, dailyToday] = await Promise.all([
+  const supabase = await createClient();
+  const [logs, overrides, dailyToday, stravaTokenResp] = await Promise.all([
     getWorkoutLogs(weekIds),
     getOverrides(weekIds),
     getDailyLog(todayISO()),
+    supabase.from('strava_tokens').select('id').maybeSingle(),
   ]);
+  const stravaConnected = !!stravaTokenResp.data;
+  const showStravaBanner = stravaConfigured() && !stravaConnected;
 
   const logMap = new Map(logs.map((l) => [l.workout_id, l]));
   const overrideMap = new Map(overrides.map((o) => [o.workout_id, o]));
@@ -136,6 +143,9 @@ export default async function HojePage({
           <PhaseBadge week={weekNum} phaseColor={week.phaseColor} label={week.phase} />
         </div>
       </section>
+
+      {/* Banner Strava (só se configurado e ainda não conectado) */}
+      {showStravaBanner && <StravaBanner />}
 
       {/* Hero card de treino */}
       <MorningHero
