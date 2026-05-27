@@ -2,76 +2,74 @@
 
 import { useState } from 'react';
 import { STRENGTH_SESSIONS } from '@/lib/plan-data';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { Card, Label } from '@/components/ui/card';
+import { CoachHint } from '@/components/ui/coach-hint';
+import { PillTabs } from '@/components/ui/pill-tabs';
+import { PillStatic } from '@/components/ui/pill';
 
 export default function ForcaPage() {
-  const [active, setActive] = useState<'A' | 'B'>('A');
-  const [open, setOpen] = useState<number | null>(null);
-  const session = STRENGTH_SESSIONS[active];
+  const [active, setActive] = useState<0 | 1>(0);
+  const key = active === 0 ? 'A' : 'B';
+  const session = STRENGTH_SESSIONS[key];
 
   return (
-    <div className="space-y-5">
-      <header>
-        <h1 className="font-serif text-2xl tracking-tight">Musculação em casa · 2×/sem</h1>
-        <p className="text-sm text-stone-500 mt-0.5">
-          Específica para corredor. Equipamento: halteres + bandas + tapete (~R$ 500).
-        </p>
+    <div className="space-y-4">
+      <header className="pt-3">
+        <Label>força</Label>
+        <h1 className="font-serif text-[32px] font-medium leading-none mt-1.5 tracking-[-0.025em]">
+          duas vezes <span className="italic text-[var(--color-accent-deep)]">por semana.</span>
+        </h1>
       </header>
 
-      <div className="grid grid-cols-2 gap-2">
-        {(['A', 'B'] as const).map((k) => (
-          <button
-            key={k}
-            onClick={() => { setActive(k); setOpen(null); }}
-            className={`p-3 rounded-xl text-left transition ${
-              active === k ? 'bg-stone-900 text-white' : 'bg-white border border-stone-200 text-stone-700'
-            }`}
-          >
-            <div className="font-serif text-lg font-medium">Sessão {k}</div>
-            <div className="text-xs opacity-80">{STRENGTH_SESSIONS[k].subtitle}</div>
-          </button>
+      <PillTabs
+        tabs={['sessão a', 'sessão b']}
+        active={active}
+        onChange={(i) => setActive(i as 0 | 1)}
+      />
+
+      <div className="space-y-2">
+        <div className="text-xs text-[var(--color-muted)] font-semibold pt-1">
+          {session.subtitle.toLowerCase()} · {session.when.toLowerCase()}
+        </div>
+        {session.exercises.map((ex, i) => (
+          <Card key={i} className="!p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <Label className="mb-1">exercício {String(i + 1).padStart(2, '0')}</Label>
+                <div className="font-serif text-[18px] font-medium leading-[1.1] tracking-[-0.01em]">
+                  {ex.name.toLowerCase()}
+                </div>
+                {ex.equip && (
+                  <div className="text-[11px] text-[var(--color-muted)] mt-1">{ex.equip}</div>
+                )}
+              </div>
+              <div className="flex flex-col items-end gap-1.5 shrink-0">
+                <span className="font-serif tab-num text-[18px] font-medium text-[var(--color-accent-deep)]">
+                  {ex.sets}
+                </span>
+                <PillStatic variant="paper" size="sm" className="!text-[10px] !px-2 !py-0.5">
+                  RIR 2
+                </PillStatic>
+              </div>
+            </div>
+            <CoachHint className="mt-2.5 !text-[13px]">{ex.why.toLowerCase()}</CoachHint>
+          </Card>
         ))}
       </div>
 
-      <div className="bg-white rounded-2xl border border-stone-200 overflow-hidden">
-        <div className="bg-stone-900 text-white px-5 py-4">
-          <h3 className="font-serif text-lg font-medium">{session.title}</h3>
-          <p className="text-xs text-stone-300 mt-1">{session.subtitle}</p>
-          <p className="text-xs text-stone-400 mt-1">{session.when}</p>
-        </div>
+      <Card variant="soft" className="!p-4 text-[13px] text-[var(--color-ink-soft)] leading-[1.5]">
+        <span className="font-serif italic text-[var(--color-accent-deep)] font-medium">
+          regra de ouro —
+        </span>{' '}
+        última rep deve sobrar uma. se chegar na falha, parou de servir pra corrida.
+      </Card>
 
-        <div className="divide-y divide-stone-100">
-          {session.exercises.map((ex, i) => {
-            const isOpen = open === i;
-            return (
-              <div key={i}>
-                <button onClick={() => setOpen(isOpen ? null : i)} className="w-full px-4 py-3 text-left hover:bg-stone-50">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1">
-                      <div className="flex items-baseline gap-3 flex-wrap">
-                        <span className="font-medium text-stone-900">{ex.name}</span>
-                        <span className="text-sm font-serif italic text-orange-700">{ex.sets}</span>
-                      </div>
-                      {ex.equip && <div className="text-xs text-stone-500 mt-1">{ex.equip}</div>}
-                    </div>
-                    {isOpen ? <ChevronDown className="w-4 h-4 text-stone-400" /> : <ChevronRight className="w-4 h-4 text-stone-400" />}
-                  </div>
-                </button>
-                {isOpen && (
-                  <div className="px-4 pb-3 bg-stone-50">
-                    <div className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 mb-1">Por quê</div>
-                    <div className="text-sm text-stone-700">{ex.why}</div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-900">
-        <strong className="font-medium">Regras:</strong> 72h entre A e B · 24h+ entre força e treino-chave · sessão B sempre leve antes de longão · semana 6 pula B · em viagem, versão mínima 15min: 3×15 agachamento + 3×10/perna afundo + 3×30s prancha + 3×15 glute bridge.
-      </div>
+      <Card variant="soft" className="!p-4 text-xs text-[var(--color-ink-soft)] leading-[1.6]">
+        <strong className="font-semibold text-[var(--color-ink)]">regras:</strong> 72h entre A e B
+        · 24h+ entre força e treino-chave · sessão B leve antes de longão · semana 6 pula B · em
+        viagem versão mínima 15min: 3×15 agachamento + 3×10/perna afundo + 3×30s prancha + 3×15
+        glute bridge.
+      </Card>
     </div>
   );
 }

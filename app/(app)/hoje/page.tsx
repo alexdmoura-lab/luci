@@ -1,20 +1,16 @@
 import Link from 'next/link';
 import { ChevronRight, Heart, Moon, Scale, Zap } from 'lucide-react';
-import { WEEKS, RACE_DATE, type WorkoutType } from '@/lib/plan-data';
+import { WEEKS, type WorkoutType } from '@/lib/plan-data';
 import { currentWeekNum, todayDayCode, todayISO, nextDayCode } from '@/lib/dates';
 import { workoutId } from '@/lib/workout-id';
 import { getDailyLog, getOverrides, getWorkoutLogs } from '@/lib/queries';
 import { DAY_LABELS, DAY_INITIALS } from '@/lib/day-helpers';
 
-import { WorkoutCard } from '@/components/plan/workout-card';
 import { Card } from '@/components/ui/card';
-import { Pill } from '@/components/ui/pill';
 import { HeroQuestion } from '@/components/ui/hero-question';
 import { PhaseBadge } from '@/components/ui/phase-badge';
-import { HalfGauge } from '@/components/ui/half-gauge';
-import { DayDots, type DayDot } from '@/components/ui/day-dots';
+import { type DayDot } from '@/components/ui/day-dots';
 import { StatCard } from '@/components/ui/stat-card';
-import { CoachHint } from '@/components/ui/coach-hint';
 import { WorkoutIcon } from '@/components/ui/workout-icon';
 import { EnergyDots } from '@/components/ui/energy-dots';
 import { Countdown } from '@/components/chrome/countdown';

@@ -7,11 +7,5 @@ export const dynamic = 'force-dynamic';
 
 export default async function NutricaoPage() {
   const today = await getDailyLog(todayISO());
-  return (
-    <NutriClient
-      dias={NUTRI_DIAS}
-      suplementos={SUPLEMENTOS}
-      todayLog={today}
-    />
-  );
+  return <NutriClient dias={NUTRI_DIAS} suplementos={SUPLEMENTOS} todayLog={today} />;
 }

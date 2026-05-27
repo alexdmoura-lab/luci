@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useTransition, useEffect } from 'react';
-import { X, Check } from 'lucide-react';
+import { X } from 'lucide-react';
 import { logWorkout } from '@/actions/log-workout';
 import { parsePace } from '@/lib/format';
 import type { WorkoutItem } from '@/lib/plan-data';
