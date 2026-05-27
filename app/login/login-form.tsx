@@ -6,11 +6,11 @@ import { Loader2, ArrowRight } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
 /**
- * Single-user app: username "luci" maps to internal email "luci@luci.app".
- * The real auth happens against Supabase password — RLS continues working.
+ * Single-user app: username "luci" (or the full e-mail) maps to the internal
+ * Supabase account. Auth uses signInWithPassword — RLS continues working.
  */
 const APP_USER = 'luci';
-const INTERNAL_EMAIL = 'luci@luci.app';
+const INTERNAL_EMAIL = 'luci@app.com';
 
 export function LoginForm() {
   const router = useRouter();
@@ -24,7 +24,9 @@ export function LoginForm() {
     setLoading(true);
     setError(null);
 
-    if (username.trim().toLowerCase() !== APP_USER) {
+    const typed = username.trim().toLowerCase();
+    const validUser = typed === APP_USER || typed === INTERNAL_EMAIL;
+    if (!validUser) {
       setError('usuário ou senha inválidos.');
       setLoading(false);
       return;
