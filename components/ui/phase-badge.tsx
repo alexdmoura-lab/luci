@@ -1,20 +1,39 @@
 import type { PhaseColor } from '@/lib/plan-data';
 
-const STYLES: Record<PhaseColor, string> = {
-  amber: 'bg-amber-50 text-amber-800 border-amber-300',
-  orange: 'bg-orange-50 text-orange-800 border-orange-300',
-  green: 'bg-green-50 text-green-800 border-green-300',
-  red: 'bg-red-50 text-red-800 border-red-300',
-  blue: 'bg-blue-50 text-blue-800 border-blue-300',
-  purple: 'bg-purple-50 text-purple-800 border-purple-300',
+export const PHASE_LABELS: Record<PhaseColor, string> = {
+  amber: 'Base',
+  orange: 'Build',
+  green: 'Deload',
+  red: 'Peak',
+  blue: 'Polish',
+  purple: 'Taper',
 };
 
-export function PhaseBadge({ phase, color }: { phase: string; color: PhaseColor }) {
+export const PHASE_COLORS: Record<PhaseColor, string> = {
+  amber: 'var(--color-phase-base)',
+  orange: 'var(--color-phase-build)',
+  green: 'var(--color-phase-deload)',
+  red: 'var(--color-phase-peak)',
+  blue: 'var(--color-phase-polish)',
+  purple: 'var(--color-phase-taper)',
+};
+
+type Props = {
+  week: number;
+  phaseColor: PhaseColor;
+  /** Override the displayed phase label */
+  label?: string;
+  className?: string;
+};
+
+export function PhaseBadge({ week, phaseColor, label, className = '' }: Props) {
+  const color = PHASE_COLORS[phaseColor];
   return (
     <span
-      className={`inline-block rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.15em] border ${STYLES[color]}`}
+      className={`inline-flex items-center gap-2 px-3 py-1.5 pl-2 rounded-full text-[11px] font-bold uppercase tracking-[0.12em] bg-[var(--color-paper-soft)] border border-[var(--color-line)] text-[var(--color-ink-soft)] ${className}`}
     >
-      {phase}
+      <span className="w-2 h-2 rounded-full" style={{ background: color }} />
+      Semana {week} · {label ?? PHASE_LABELS[phaseColor]}
     </span>
   );
 }

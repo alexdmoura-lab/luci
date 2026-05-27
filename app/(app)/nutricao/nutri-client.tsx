@@ -1,10 +1,15 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { ChevronDown, ChevronRight, Check } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { upsertDailyLog } from '@/actions/daily-log';
-import type { DailyLog } from '@/lib/types';
 import type { NutriDayKey } from '@/lib/plan-data';
+import type { DailyLog } from '@/lib/types';
+
+import { Card, Label } from '@/components/ui/card';
+import { CoachHint } from '@/components/ui/coach-hint';
+import { PillTabs } from '@/components/ui/pill-tabs';
+import { PillStatic } from '@/components/ui/pill';
 
 type Dias = Record<NutriDayKey, {
   label: string;
@@ -15,11 +20,17 @@ type Dias = Record<NutriDayKey, {
   meals: { time: string; name: string; items: string }[];
 }>;
 
-const dayColors = {
-  red: 'border-red-300 text-red-700',
-  amber: 'border-amber-300 text-amber-700',
-  emerald: 'border-emerald-300 text-emerald-700',
-};
+const MEAL_COLORS = [
+  'var(--color-accent)',
+  'var(--color-done)',
+  'var(--color-phase-base)',
+  'var(--color-phase-deload)',
+  'var(--color-phase-polish)',
+  'var(--color-phase-taper)',
+  'var(--color-phase-peak)',
+];
+
+const TABS = ['hoje', 'cardápios', 'suplementos', 'prova'] as const;
 
 export function NutriClient({
   dias,
@@ -30,118 +41,148 @@ export function NutriClient({
   suplementos: ReadonlyArray<{ id: string; nome: string; dose: string; priority: string; why: string }>;
   todayLog: DailyLog | null;
 }) {
-  const [tab, setTab] = useState<'hoje' | 'estrategia' | NutriDayKey | 'suplementos'>('hoje');
-  const [exp, setExp] = useState<string | null>(null);
+  const [tab, setTab] = useState(0);
+  const [diaTab, setDiaTab] = useState(0);
+  const diaKey: NutriDayKey = (['chave', 'moderado', 'descanso'] as NutriDayKey[])[diaTab];
+  const dia = dias[diaKey];
 
   return (
-    <div className="space-y-5">
-      <header>
-        <h1 className="font-serif text-2xl tracking-tight">Nutrição</h1>
-        <p className="text-sm text-stone-500 mt-0.5">Cardápio cíclico + suplementos + checklist diário.</p>
+    <div className="space-y-4">
+      <header className="pt-3">
+        <Label>nutrição</Label>
+        <h1 className="font-serif text-[32px] font-medium leading-none mt-1.5 tracking-[-0.025em]">
+          comer é <span className="italic text-[var(--color-accent-deep)]">treinar.</span>
+        </h1>
       </header>
 
-      <div className="flex gap-1 border-b border-stone-200 overflow-x-auto no-scrollbar -mx-4 px-4">
-        {[
-          { id: 'hoje', label: 'Hoje' },
-          { id: 'estrategia', label: 'Estratégia' },
-          { id: 'chave', label: 'Treino-chave' },
-          { id: 'moderado', label: 'Moderado' },
-          { id: 'descanso', label: 'Descanso' },
-          { id: 'suplementos', label: 'Suplementos' },
-        ].map((t) => (
-          <button
-            key={t.id}
-            onClick={() => setTab(t.id as typeof tab)}
-            className={`px-3 py-2 text-sm font-medium border-b-2 whitespace-nowrap transition ${
-              tab === t.id ? 'border-emerald-600 text-emerald-700' : 'border-transparent text-stone-500'
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+      <PillTabs tabs={TABS as unknown as string[]} active={tab} onChange={setTab} />
 
-      {tab === 'hoje' && (
-        <SupplementChecklist suplementos={suplementos} todayLog={todayLog} />
-      )}
+      {tab === 0 && <HojeView todayLog={todayLog} suplementos={suplementos} />}
 
-      {tab === 'estrategia' && (
+      {tab === 1 && (
         <div className="space-y-4">
-          <div className="bg-amber-50 border-l-4 border-amber-600 rounded-r-xl p-4 text-sm text-amber-900">
-            <strong className="font-medium">Regra de ouro:</strong> em dia de treino-chave, come no MANUTENÇÃO. Déficit zero. Perde peso nos outros dias. Meta realista: <strong>3-5 kg em 8 semanas</strong>.
-          </div>
+          <PillTabs
+            tabs={['treino-chave', 'moderado', 'descanso']}
+            active={diaTab}
+            onChange={setDiaTab}
+          />
+          <Card className="!p-5">
+            <div className="flex justify-between items-baseline flex-wrap gap-2 mb-2">
+              <h2 className="font-serif text-[20px] font-medium tracking-[-0.02em]">
+                {dia.label.toLowerCase()}
+              </h2>
+              <span className="text-sm font-semibold text-[var(--color-accent-deep)] tab-num">
+                {dia.kcal} kcal
+              </span>
+            </div>
+            <CoachHint className="!text-[13px]">{dia.regra.toLowerCase()}</CoachHint>
+          </Card>
 
-          <h2 className="font-serif text-xl tracking-tight">Macros por tipo de dia (~82kg)</h2>
-          <div className="space-y-3">
-            {(Object.entries(dias) as [NutriDayKey, Dias[NutriDayKey]][]).map(([key, d]) => (
-              <div key={key} className={`bg-white rounded-xl border-l-4 ${dayColors[d.color]} border-y border-r border-stone-200 p-4`}>
-                <div className="flex items-baseline justify-between mb-1 flex-wrap gap-2">
-                  <h3 className="font-medium text-stone-900">{d.label}</h3>
-                  <span className={`text-sm font-medium ${dayColors[d.color].split(' ')[1]}`}>{d.kcal} kcal</span>
+          <div className="space-y-2">
+            {dia.meals.map((m, i) => (
+              <Card key={i} className="!p-3.5 flex items-stretch gap-3.5">
+                <div
+                  className="w-1 rounded-full self-stretch min-h-[38px]"
+                  style={{ background: MEAL_COLORS[i % MEAL_COLORS.length] }}
+                />
+                <div className="flex-1">
+                  <div className="flex items-baseline gap-2.5">
+                    <span className="font-serif tab-num text-base font-medium">{m.time}</span>
+                    <Label>{m.name.toLowerCase()}</Label>
+                  </div>
+                  <div className="text-[13px] text-[var(--color-ink-soft)] mt-1">{m.items}</div>
                 </div>
-                <p className="text-xs text-stone-500 mb-2">{d.desc}</p>
-                <p className="text-sm text-stone-700"><strong>Objetivo:</strong> {d.regra}</p>
-              </div>
+              </Card>
             ))}
           </div>
-
-          <div className="bg-stone-900 text-stone-100 rounded-xl p-5">
-            <h3 className="text-[10px] font-bold uppercase tracking-widest text-emerald-300 mb-3">Princípios não negociáveis</h3>
-            <ul className="space-y-2 text-sm">
-              {[
-                ['Proteína 2.0-2.2g/kg/dia (165-180g).', 'Distribui em 4-5 refeições. Whey isolado SL ajuda a bater.'],
-                ['Sem álcool', '(ou no máximo 2 doses fim de semana sem treino-chave seguinte).'],
-                ['Sono ≥7h30.', 'Mais importante que muito suplemento.'],
-                ['Hidratação 35ml/kg base = 2,8L.', '+500ml/h em treino + sódio em treino >60min.'],
-                ['Sem glúten/lactose rigoroso.', 'Whey isolado tem <0.1g lactose, ok.'],
-              ].map(([bold, rest], i) => (
-                <li key={i} className="flex gap-2">
-                  <span className="text-emerald-400">▸</span>
-                  <span><strong className="text-white">{bold}</strong> {rest}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
         </div>
       )}
 
-      {(tab === 'chave' || tab === 'moderado' || tab === 'descanso') && (
-        <DiaDetail d={dias[tab as NutriDayKey]} />
-      )}
-
-      {tab === 'suplementos' && (
-        <div className="space-y-3">
-          {suplementos.map((s) => {
-            const open = exp === s.id;
-            return (
-              <div key={s.id} className="bg-white rounded-xl border border-stone-200 overflow-hidden">
-                <button onClick={() => setExp(open ? null : s.id)} className="w-full px-4 py-3 text-left hover:bg-stone-50">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1">
-                      <div className="flex items-baseline gap-2 flex-wrap">
-                        <span className="font-medium text-stone-900">{s.nome}</span>
-                        <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded ${
-                          s.priority === 'ESSENCIAL' ? 'bg-emerald-100 text-emerald-700' :
-                          s.priority === 'RECOMENDADO' ? 'bg-amber-100 text-amber-700' :
-                          'bg-sky-100 text-sky-700'
-                        }`}>{s.priority}</span>
-                      </div>
-                      <div className="text-sm text-stone-600 mt-1 font-serif italic">{s.dose}</div>
-                    </div>
-                    {open ? <ChevronDown className="w-4 h-4 text-stone-400" /> : <ChevronRight className="w-4 h-4 text-stone-400" />}
+      {tab === 2 && (
+        <div className="space-y-2">
+          {suplementos.map((s) => (
+            <Card key={s.id} className="!p-4">
+              <div className="flex justify-between items-start gap-3 flex-wrap">
+                <div className="flex-1 min-w-0">
+                  <div className="font-serif text-[17px] font-medium tracking-[-0.01em]">
+                    {s.nome.toLowerCase()}
                   </div>
-                </button>
-                {open && (
-                  <div className="px-4 pb-3 bg-emerald-50 border-t border-emerald-100">
-                    <div className="text-[10px] font-bold uppercase tracking-widest text-emerald-800 mb-1 mt-2">Por quê funciona</div>
-                    <div className="text-sm text-emerald-900">{s.why}</div>
+                  <div className="text-xs text-[var(--color-muted)] mt-1 font-serif italic">
+                    {s.dose}
                   </div>
-                )}
+                </div>
+                <PillStatic
+                  variant={
+                    s.priority === 'ESSENCIAL'
+                      ? 'done'
+                      : s.priority === 'RECOMENDADO'
+                        ? 'warn'
+                        : 'soft'
+                  }
+                  size="sm"
+                  className="!text-[10px] !px-2 !py-0.5"
+                >
+                  {s.priority.toLowerCase()}
+                </PillStatic>
               </div>
-            );
-          })}
-          <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-900 mt-4">
-            <strong className="font-medium">Não compre:</strong> BCAA (whey já tem), L-carnitina, glutamina, termogênico, pré-treino blend. Marketing.
+              <CoachHint className="mt-2.5 !text-[13px]">{s.why}</CoachHint>
+            </Card>
+          ))}
+          <Card variant="soft" className="!p-4 text-[13px] text-[var(--color-ink-soft)] leading-[1.5]">
+            <strong className="font-semibold text-[var(--color-ink)]">não compre:</strong> BCAA
+            (whey já tem), L-carnitina, glutamina, termogênico, pré-treino blend. marketing.
+          </Card>
+        </div>
+      )}
+
+      {tab === 3 && (
+        <div
+          className="rounded-[24px] p-[22px]"
+          style={{ background: 'var(--color-ink)', color: 'var(--color-paper)' }}
+        >
+          <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-[rgba(243,238,228,0.55)]">
+            na manhã da prova
+          </div>
+          <h3 className="font-serif text-[22px] font-medium m-0 mt-1.5 mb-3.5 tracking-[-0.02em]">
+            nada de novo.
+          </h3>
+          <div className="space-y-3.5 text-[13px] leading-[1.5] text-[rgba(243,238,228,0.88)]">
+            <div>
+              <strong
+                className="font-serif italic font-medium"
+                style={{ color: 'var(--color-accent-soft)' }}
+              >
+                3h antes —
+              </strong>{' '}
+              café da manhã. pão, banana, café preto, 500ml água.
+            </div>
+            <div>
+              <strong
+                className="font-serif italic font-medium"
+                style={{ color: 'var(--color-accent-soft)' }}
+              >
+                1h antes —
+              </strong>{' '}
+              gel + 200ml. nada sólido.
+            </div>
+            <div>
+              <strong
+                className="font-serif italic font-medium"
+                style={{ color: 'var(--color-accent-soft)' }}
+              >
+                na corrida —
+              </strong>{' '}
+              gel km 7, gel km 14. água a cada posto.
+            </div>
+            <div>
+              <strong
+                className="font-serif italic font-medium"
+                style={{ color: 'var(--color-accent-soft)' }}
+              >
+                chegou —
+              </strong>{' '}
+              banana imediato. água com sal. comer de verdade em 1h.
+            </div>
           </div>
         </div>
       )}
@@ -149,46 +190,17 @@ export function NutriClient({
   );
 }
 
-function DiaDetail({ d }: { d: Dias[NutriDayKey] }) {
-  return (
-    <div className="space-y-3">
-      <div className={`bg-white rounded-xl border-l-4 ${dayColors[d.color]} border-y border-r border-stone-200 p-5`}>
-        <div className="flex items-start justify-between flex-wrap gap-2 mb-2">
-          <div>
-            <h2 className="font-serif text-xl">{d.label}</h2>
-            <p className="text-sm text-stone-500 mt-0.5">{d.desc}</p>
-          </div>
-          <span className={`text-sm font-medium ${dayColors[d.color].split(' ')[1]}`}>{d.kcal} kcal</span>
-        </div>
-        <div className="bg-stone-50 rounded p-3 text-sm text-stone-700">
-          <strong>Objetivo:</strong> {d.regra}
-        </div>
-      </div>
+const ESSENTIAL_SUPP_IDS = ['whey', 'creatina', 'cafeina', 'beta', 'vitd', 'eletro'];
 
-      <div className="space-y-2">
-        {d.meals.map((m, i) => (
-          <div key={i} className="bg-white rounded-xl border border-stone-200 p-4">
-            <div className="flex items-baseline gap-3 mb-1 flex-wrap">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-stone-500">{m.time}</span>
-              <span className="font-medium text-stone-900">{m.name}</span>
-            </div>
-            <div className="text-sm text-stone-700 mt-1">{m.items}</div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function SupplementChecklist({
-  suplementos,
+function HojeView({
   todayLog,
+  suplementos,
 }: {
-  suplementos: ReadonlyArray<{ id: string; nome: string; dose: string; priority: string }>;
   todayLog: DailyLog | null;
+  suplementos: ReadonlyArray<{ id: string; nome: string; dose: string; priority: string }>;
 }) {
   const [state, setState] = useState<Record<string, boolean>>(todayLog?.supplements ?? {});
-  const [pending, start] = useTransition();
+  const [, start] = useTransition();
 
   function toggle(id: string) {
     const next = { ...state, [id]: !state[id] };
@@ -198,42 +210,61 @@ function SupplementChecklist({
     });
   }
 
-  const dailyEssentials = suplementos.filter((s) => s.priority === 'ESSENCIAL' || s.priority === 'RECOMENDADO');
+  const list = suplementos.filter((s) => ESSENTIAL_SUPP_IDS.includes(s.id));
+  const doneCount = list.filter((s) => state[s.id]).length;
 
   return (
     <div className="space-y-4">
-      <div className="bg-white rounded-2xl border border-stone-200 p-4">
-        <div className="text-[10px] font-bold uppercase tracking-widest text-stone-500 mb-3">
-          Suplementos · checklist de hoje
+      <Card className="!p-5">
+        <div className="flex justify-between items-baseline mb-3.5">
+          <div>
+            <Label>do dia</Label>
+            <div className="font-serif text-[17px] font-medium mt-0.5">suplementos</div>
+          </div>
+          <div className="text-[11px] text-[var(--color-muted)]">
+            {doneCount} de {list.length}
+          </div>
         </div>
-        <ul className="space-y-1.5">
-          {dailyEssentials.map((s) => (
-            <li key={s.id}>
-              <button
-                onClick={() => toggle(s.id)}
-                disabled={pending}
-                className="w-full flex items-start gap-3 py-2 text-left"
-              >
-                <span className={`shrink-0 mt-0.5 w-5 h-5 rounded border-2 flex items-center justify-center ${
-                  state[s.id] ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-stone-300'
-                }`}>
-                  {state[s.id] && <Check className="w-3 h-3" strokeWidth={3} />}
-                </span>
-                <span className="flex-1 min-w-0">
-                  <span className={`text-sm font-medium ${state[s.id] ? 'text-stone-400 line-through decoration-stone-300' : 'text-stone-900'}`}>
-                    {s.nome}
+        <ul className="space-y-2.5">
+          {list.map((s) => {
+            const filled = !!state[s.id];
+            return (
+              <li key={s.id}>
+                <button
+                  onClick={() => toggle(s.id)}
+                  className="tap w-full flex items-start gap-3 py-1.5 text-left"
+                >
+                  <span
+                    className={`shrink-0 w-6 h-6 rounded-full border-[1.5px] flex items-center justify-center transition mt-0.5 ${
+                      filled
+                        ? 'bg-[var(--color-accent)] border-[var(--color-accent)] text-white'
+                        : 'bg-[var(--color-paper-soft)] border-[var(--color-line)]'
+                    }`}
+                  >
+                    {filled && <Check className="w-3.5 h-3.5" strokeWidth={2.6} />}
                   </span>
-                  <span className="block text-xs text-stone-500">{s.dose}</span>
-                </span>
-              </button>
-            </li>
-          ))}
+                  <span className="flex-1 min-w-0">
+                    <span
+                      className={`text-sm font-medium ${
+                        filled
+                          ? 'text-[var(--color-muted)] line-through decoration-[var(--color-line)]'
+                          : 'text-[var(--color-ink)]'
+                      }`}
+                    >
+                      {s.nome.toLowerCase()}
+                    </span>
+                    <span className="block text-xs text-[var(--color-muted)] mt-0.5">{s.dose}</span>
+                  </span>
+                </button>
+              </li>
+            );
+          })}
         </ul>
-      </div>
+      </Card>
 
-      <p className="text-xs text-stone-500 text-center">
-        Refeições e itens detalhados: abre a aba do dia (treino-chave / moderado / descanso) no topo.
-      </p>
+      <CoachHint className="!p-3.5 !text-[13px] rounded-[14px] bg-[var(--color-paper-soft)] border border-[var(--color-line)] !border-l-[3px]">
+        os cardápios completos por tipo de dia estão na aba <strong className="not-italic font-bold">cardápios</strong>.
+      </CoachHint>
     </div>
   );
 }

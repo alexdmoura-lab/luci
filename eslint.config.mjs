@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Design reference bundle — protótipos HTML, não código de produção
+    "design_handoff_luci_redesign/**",
   ]),
 ]);
 

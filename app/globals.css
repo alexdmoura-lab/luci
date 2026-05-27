@@ -1,22 +1,66 @@
 @import "tailwindcss";
 
 @theme {
+  /* Fonts (variables set in layout.tsx) */
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-serif: var(--font-fraunces), ui-serif, Georgia, serif;
+  --font-serif: var(--font-fraunces), 'Cormorant Garamond', ui-serif, Georgia, serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, monospace;
 
-  --color-paper: #fafaf9;
-  --color-ink: #1c1917;
-  --color-muted: #78716c;
-  --color-line: #e7e5e4;
-  --color-card: #ffffff;
+  /* Paper — bases quentes */
+  --color-paper: #F3EEE4;
+  --color-paper-soft: #FAF6EE;
+  --color-card: #FFFFFF;
+  --color-ink: #1B1815;
+  --color-ink-soft: #3D3935;
+  --color-muted: #8C857A;
+  --color-line: #E7DFD0;
+
+  /* Acento — laranja-assinatura */
+  --color-accent: #FF5722;
+  --color-accent-deep: #D8401A;
+  --color-accent-soft: #FFE5D6;
+  --color-accent-tint: #FFF1E8;
+
+  /* Estados */
+  --color-done: #4F8F58;
+  --color-done-soft: #DDE8DA;
+  --color-warn: #C99B2A;
+  --color-warn-soft: #F4E9C7;
+
+  /* Fases do plano */
+  --color-phase-base: #B98700;
+  --color-phase-build: #D8401A;
+  --color-phase-deload: #4F8F58;
+  --color-phase-peak: #A8261C;
+  --color-phase-polish: #1F4FB8;
+  --color-phase-taper: #5B3FA8;
+
+  /* Radius escala */
+  --radius-sm: 14px;
+  --radius-md: 18px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+
+  /* Sombras */
+  --shadow-soft: 0 1px 2px rgba(27, 24, 21, 0.04), 0 8px 24px rgba(27, 24, 21, 0.05);
+  --shadow-up: 0 2px 4px rgba(27, 24, 21, 0.06), 0 16px 36px rgba(27, 24, 21, 0.08);
+  --shadow-pop: 0 6px 14px rgba(216, 64, 26, 0.28), 0 18px 40px rgba(216, 64, 26, 0.22);
 }
 
-html, body { height: 100%; }
+html, body { height: 100%; margin: 0; padding: 0; }
 
 body {
-  background: var(--color-paper);
-  color: var(--color-ink);
   font-family: var(--font-sans);
+  color: var(--color-ink);
+  background-color: var(--color-paper);
+  background-image: radial-gradient(
+    circle at center,
+    rgba(27, 24, 21, 0.07) 1px,
+    transparent 1.2px
+  );
+  background-size: 14px 14px;
+  background-attachment: fixed;
+  font-feature-settings: 'ss01', 'cv11';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -24,24 +68,69 @@ body {
 }
 
 ::selection {
-  background: #fde68a;
-  color: #422006;
+  background: var(--color-accent-soft);
+  color: var(--color-accent-deep);
 }
 
 button { -webkit-tap-highlight-color: transparent; }
 input, select, textarea { font-family: inherit; }
 
+/* Serif com variation axes (Fraunces) */
+.font-serif {
+  font-variation-settings: 'SOFT' 50, 'opsz' 144;
+  letter-spacing: -0.02em;
+}
+
+/* Tabular nums helper */
+.tab-num { font-variant-numeric: tabular-nums; }
+
+/* Esconde scrollbar */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { scrollbar-width: none; }
 
+/* Safe area pro iPhone */
 .pb-safe { padding-bottom: calc(env(safe-area-inset-bottom) + 0.5rem); }
 .pt-safe { padding-top: calc(env(safe-area-inset-top) + 0.5rem); }
 
-@keyframes draw-check {
+/* ── Animations ── */
+@keyframes check-draw {
   to { stroke-dashoffset: 0; }
 }
-.animate-draw-check {
+.animate-check-draw {
   stroke-dasharray: 24;
   stroke-dashoffset: 24;
-  animation: draw-check 280ms ease-out forwards;
+  animation: check-draw 450ms cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
 }
+
+@keyframes pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.18); }
+  100% { transform: scale(1.08); }
+}
+.animate-pop { animation: pop 350ms ease; }
+
+@keyframes card-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.015); }
+}
+.animate-card-pulse { animation: card-pulse 400ms ease; }
+
+@keyframes sheet-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.animate-sheet-up {
+  animation: sheet-up 350ms cubic-bezier(0.2, 0.7, 0.2, 1.05);
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.animate-fade-in {
+  animation: fade-in 250ms ease;
+}
+
+/* Tap feedback */
+.tap { transition: transform 120ms ease; }
+.tap:active { transform: scale(0.97); }
