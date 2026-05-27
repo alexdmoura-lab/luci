@@ -30,7 +30,7 @@ export default function LoginPage() {
         <p className="font-serif text-lg italic text-[var(--color-ink-soft)] mt-[18px] leading-[1.35]">
           falta pouco pra <span className="text-[var(--color-accent-deep)]">19 . jul</span>.
           <br />
-          entra com teu e-mail.
+          bora?
         </p>
 
         <LoginForm />
