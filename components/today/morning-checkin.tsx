@@ -25,7 +25,7 @@ export function MorningCheckin({ today }: { today: DailyLog | null }) {
   }
 
   return (
-    <div className="rounded-[24px] bg-[var(--color-paper-soft)] border border-[var(--color-line)] p-5">
+    <div id="check-in" className="rounded-[24px] bg-[var(--color-paper-soft)] border border-[var(--color-line)] p-5 scroll-mt-4">
       <div className="flex items-baseline justify-between mb-3">
         <div>
           <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--color-muted)]">
@@ -49,6 +49,7 @@ export function MorningCheckin({ today }: { today: DailyLog | null }) {
             peso (kg)
           </div>
           <input
+            id="input-peso"
             type="number"
             inputMode="decimal"
             step="0.1"
@@ -64,6 +65,7 @@ export function MorningCheckin({ today }: { today: DailyLog | null }) {
             sono (h)
           </div>
           <input
+            id="input-sono"
             type="number"
             inputMode="decimal"
             step="0.25"
@@ -76,7 +78,7 @@ export function MorningCheckin({ today }: { today: DailyLog | null }) {
         </label>
       </div>
 
-      <div className="mt-3">
+      <div id="input-energia" className="mt-3 scroll-mt-4">
         <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--color-muted)] mb-1.5">
           energia
         </div>

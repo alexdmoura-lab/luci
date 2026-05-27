@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ChevronRight, Heart, Moon, Scale, Zap } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { WEEKS, type WorkoutType } from '@/lib/plan-data';
 import { currentWeekNum, todayDayCode, todayISO, nextDayCode } from '@/lib/dates';
 import { workoutId } from '@/lib/workout-id';
@@ -10,13 +10,12 @@ import { Card } from '@/components/ui/card';
 import { HeroQuestion } from '@/components/ui/hero-question';
 import { PhaseBadge } from '@/components/ui/phase-badge';
 import { type DayDot } from '@/components/ui/day-dots';
-import { StatCard } from '@/components/ui/stat-card';
 import { WorkoutIcon } from '@/components/ui/workout-icon';
-import { EnergyDots } from '@/components/ui/energy-dots';
 import { Countdown } from '@/components/chrome/countdown';
 import { MorningCheckin } from '@/components/today/morning-checkin';
 import { MorningHero } from './morning-hero';
 import { SupplementChecklist } from './supplement-checklist';
+import { StatGrid } from './stat-grid';
 
 export const dynamic = 'force-dynamic';
 
@@ -168,54 +167,6 @@ export default async function HojePage() {
       <div className="py-2">
         <Countdown />
       </div>
-    </div>
-  );
-}
-
-function StatGrid({
-  weight,
-  sleep,
-  energy,
-  weekDone,
-  weekPlan,
-}: {
-  weight: number | null;
-  sleep: number | null;
-  energy: number | null;
-  weekDone: number;
-  weekPlan: number;
-}) {
-  return (
-    <div className="grid grid-cols-2 gap-2.5">
-      <StatCard
-        icon={<Scale className="w-4 h-4" strokeWidth={2} />}
-        label="peso"
-        value={weight != null ? `${weight}` : '—'}
-        sub={weight != null ? 'kg' : 'toque pra registrar'}
-      />
-      <StatCard
-        icon={<Moon className="w-4 h-4" strokeWidth={2} />}
-        label="sono"
-        value={sleep != null ? `${sleep}h` : '—'}
-        sub={sleep != null ? 'horas' : 'toque pra registrar'}
-      />
-      <StatCard
-        icon={<Zap className="w-4 h-4" strokeWidth={2} />}
-        label="energia"
-        value={energy != null ? <EnergyDots value={energy} /> : <span className="text-[var(--color-muted)]">—</span>}
-        sub={energy != null ? `${energy} de 5` : 'toque pra registrar'}
-      />
-      <StatCard
-        icon={<Heart className="w-4 h-4" strokeWidth={2} />}
-        label="semana"
-        value={
-          <span className="tab-num">
-            {weekDone}
-            <span className="text-[var(--color-muted)] text-base">/{weekPlan}</span>
-          </span>
-        }
-        sub="treinos feitos"
-      />
     </div>
   );
 }
