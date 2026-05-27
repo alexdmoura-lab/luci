@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Flame, ArrowRight } from 'lucide-react';
 import { WorkoutIcon } from '@/components/ui/workout-icon';
 import { HalfGauge } from '@/components/ui/half-gauge';
@@ -21,6 +22,8 @@ type Props = {
   pct: number;
   dayDots: DayDot[];
   coachNote?: string;
+  /** When true, auto-open the log modal once after mount (used by ?log=1 from FAB) */
+  autoOpenLog?: boolean;
 };
 
 export function MorningHero({
@@ -34,9 +37,21 @@ export function MorningHero({
   pct,
   dayDots,
   coachNote,
+  autoOpenLog = false,
 }: Props) {
-  const [openLog, setOpenLog] = useState(false);
+  const router = useRouter();
+  const shouldAutoOpen = autoOpenLog && !!item && item.type !== 'rest';
+  const [openLog, setOpenLog] = useState<boolean>(shouldAutoOpen);
   const [pulse, setPulse] = useState(false);
+  const urlCleaned = useRef(false);
+
+  // Clear the ?log=1 query param after auto-opening (ref guard, no setState in effect)
+  useEffect(() => {
+    if (shouldAutoOpen && !urlCleaned.current) {
+      urlCleaned.current = true;
+      router.replace('/hoje', { scroll: false });
+    }
+  }, [shouldAutoOpen, router]);
 
   if (!item) return null;
 
@@ -44,6 +59,7 @@ export function MorningHero({
   const label = override?.new_label ?? item.label;
   const detail = override?.new_detail ?? item.detail;
   const isDone = log?.status === 'done';
+  const isRest = type === 'rest';
 
   const isQuality =
     type === 'run' && /tempo|fartlek|intervalo|vo2|km @|tune-up/i.test(label);
@@ -54,6 +70,10 @@ export function MorningHero({
     setOpenLog(true);
   }
 
+  function handleCloseModal() {
+    setOpenLog(false);
+  }
+
   return (
     <>
       <div
@@ -62,7 +82,7 @@ export function MorningHero({
       >
         <div className="flex justify-between items-start mb-1">
           <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--color-muted)]">
-            treino de hoje
+            {isRest ? 'hoje' : 'treino de hoje'}
           </div>
           {streak > 0 && (
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[var(--color-ink)] text-white text-[11px] font-semibold">
@@ -114,10 +134,15 @@ export function MorningHero({
 
         <DayDots days={dayDots} showLabel />
 
-        {!isDone ? (
+        {isRest ? (
+          <div className="mt-[18px] py-3.5 px-6 rounded-full bg-[var(--color-paper-soft)] border border-[var(--color-line)] text-center text-[13px] text-[var(--color-ink-soft)] font-serif italic">
+            descanso é treino. sem culpa.
+          </div>
+        ) : !isDone ? (
           <button
             onClick={onTapLog}
-            className="tap mt-[18px] w-full rounded-full py-[18px] px-6 font-bold text-[15px] text-white border-0 cursor-pointer flex items-center justify-center gap-2"
+            aria-label="Marcar treino como feito"
+            className="tap focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--color-accent)] focus-visible:outline-none mt-[18px] w-full rounded-full py-[18px] px-6 font-bold text-[15px] text-white border-0 cursor-pointer flex items-center justify-center gap-2"
             style={{ background: 'var(--color-accent)', boxShadow: 'var(--shadow-pop)' }}
           >
             marcar feito <ArrowRight className="w-4 h-4" strokeWidth={2.2} />
@@ -125,7 +150,8 @@ export function MorningHero({
         ) : (
           <button
             onClick={onTapLog}
-            className="tap mt-[18px] w-full rounded-full py-[18px] px-6 font-semibold text-[14px] cursor-pointer flex items-center justify-center gap-2 border bg-[var(--color-done-soft)] text-[var(--color-done)] border-[var(--color-done-soft)]"
+            aria-label="Editar treino registrado"
+            className="tap focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--color-done)] focus-visible:outline-none mt-[18px] w-full rounded-full py-[18px] px-6 font-semibold text-[14px] cursor-pointer flex items-center justify-center gap-2 border bg-[var(--color-done-soft)] text-[var(--color-done)] border-[var(--color-done-soft)]"
           >
             feito · editar
           </button>
@@ -137,7 +163,7 @@ export function MorningHero({
           workoutId={workoutId}
           workout={{ ...item, type, label, detail }}
           current={log}
-          onClose={() => setOpenLog(false)}
+          onClose={handleCloseModal}
         />
       )}
     </>

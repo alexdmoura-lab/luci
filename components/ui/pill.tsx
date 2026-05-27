@@ -27,7 +27,7 @@ const SIZE_CLS: Record<PillSize, string> = {
   xl: 'text-base px-7 py-4',
 };
 
-const BASE = 'tap inline-flex items-center gap-1.5 rounded-full font-semibold leading-none whitespace-nowrap border-0 cursor-pointer transition-[transform,box-shadow,background] duration-150 ease-out';
+const BASE = 'tap inline-flex items-center gap-1.5 rounded-full font-semibold leading-none whitespace-nowrap border-0 cursor-pointer transition-[transform,box-shadow,background] duration-150 ease-out focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--color-accent)] focus-visible:outline-none';
 
 export function Pill({
   variant = 'primary',

@@ -30,14 +30,19 @@ export function LogModal({ workoutId, workout, current, onClose }: Props) {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Lock body scroll while open
+  // Lock body scroll while open + handle ESC to close
   useEffect(() => {
     const orig = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose();
+    }
+    window.addEventListener('keydown', onKey);
     return () => {
       document.body.style.overflow = orig;
+      window.removeEventListener('keydown', onKey);
     };
-  }, []);
+  }, [onClose]);
 
   const isRunish = workout.type === 'run' || workout.type === 'long' || workout.type === 'race';
 
@@ -152,6 +157,8 @@ export function LogModal({ workoutId, workout, current, onClose }: Props) {
                 <button
                   key={s.v}
                   onClick={() => setStatus(s.v)}
+                  aria-label={`Marcar como ${s.label}`}
+                  aria-pressed={status === s.v}
                   className="tap flex-1 rounded-full px-4 py-3 font-semibold text-[13px] cursor-pointer transition"
                   style={
                     status === s.v

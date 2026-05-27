@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { LogOut, Bell, User } from 'lucide-react';
+import { LogOut, Loader2 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
 const primaryItems = [
@@ -70,28 +70,20 @@ export function TopNav() {
           })}
         </nav>
 
-        <div className="flex items-center gap-1.5">
-          <button
-            aria-label="Notificações"
-            className="tap w-[38px] h-[38px] rounded-full bg-[var(--color-card)] border-0 flex items-center justify-center text-[var(--color-ink-soft)]"
-            style={{ boxShadow: 'var(--shadow-soft)' }}
-          >
-            <Bell className="w-[18px] h-[18px]" strokeWidth={1.8} />
-          </button>
-          <button
-            onClick={signOut}
-            disabled={signingOut}
-            aria-label="Sair"
-            className="tap w-[38px] h-[38px] rounded-full bg-[var(--color-card)] border-0 flex items-center justify-center text-[var(--color-ink-soft)]"
-            style={{ boxShadow: 'var(--shadow-soft)' }}
-          >
-            {signingOut ? (
-              <LogOut className="w-[18px] h-[18px]" strokeWidth={1.8} />
-            ) : (
-              <User className="w-[18px] h-[18px]" strokeWidth={1.8} />
-            )}
-          </button>
-        </div>
+        <button
+          onClick={signOut}
+          disabled={signingOut}
+          aria-label="Sair"
+          title="Sair"
+          className="tap focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:outline-none w-[38px] h-[38px] rounded-full bg-[var(--color-card)] border-0 flex items-center justify-center text-[var(--color-ink-soft)] disabled:opacity-50"
+          style={{ boxShadow: 'var(--shadow-soft)' }}
+        >
+          {signingOut ? (
+            <Loader2 className="w-[18px] h-[18px] animate-spin" strokeWidth={1.8} />
+          ) : (
+            <LogOut className="w-[18px] h-[18px]" strokeWidth={1.8} />
+          )}
+        </button>
       </div>
 
       {/* Sub-nav de referência (mobile, scrollable) */}

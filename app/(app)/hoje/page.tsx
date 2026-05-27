@@ -37,7 +37,16 @@ const GREETING_HEADLINE: Record<WorkoutType, { headline: React.ReactNode }> = {
   race: { headline: <>dia da <span className="italic text-[var(--color-accent-deep)]">prova.</span></> },
 };
 
-export default async function HojePage() {
+type SearchParams = Promise<{ log?: string }>;
+
+export default async function HojePage({
+  searchParams,
+}: {
+  searchParams?: SearchParams;
+}) {
+  const params = (await searchParams) ?? {};
+  const autoOpenLog = params.log === '1';
+
   const weekNum = currentWeekNum();
   const week = WEEKS.find((w) => w.num === weekNum)!;
   const day = todayDayCode();
@@ -72,16 +81,15 @@ export default async function HojePage() {
     const allRest = d.items.every((it) => it.type === 'rest');
     if (allRest) return { state: 'rest', label: DAY_LABELS[d.d] };
     const ids = d.items.map((_, i) => workoutId(weekNum, d.d, i));
-    const allDone = ids.every((id) => logMap.get(id)?.status === 'done');
     const anyDone = ids.some((id) => logMap.get(id)?.status === 'done');
     const anySkipped = ids.some((id) => logMap.get(id)?.status === 'skipped');
     if (isToday) {
       return { state: 'today', label: DAY_LABELS[d.d], num: DAY_INITIALS[d.d] };
     }
     if (idx < todayIdx) {
-      if (allDone || anyDone) return { state: 'past-done', label: DAY_LABELS[d.d] };
+      if (anyDone) return { state: 'past-done', label: DAY_LABELS[d.d] };
       if (anySkipped) return { state: 'past-skip', label: DAY_LABELS[d.d] };
-      return { state: 'past-skip', label: DAY_LABELS[d.d] };
+      return { state: 'past-incomplete', label: DAY_LABELS[d.d], num: DAY_INITIALS[d.d] };
     }
     return { state: 'future', label: DAY_LABELS[d.d], num: DAY_INITIALS[d.d] };
   });
@@ -125,6 +133,7 @@ export default async function HojePage() {
         pct={pct}
         dayDots={dayDots}
         coachNote={coachNote}
+        autoOpenLog={autoOpenLog}
       />
 
       {/* Stats 2x2 */}
@@ -193,20 +202,37 @@ function weekDays(
   return days.map((d) => {
     const ids = d.items.map((_, i) => workoutId(weekNum, d.d as never, i));
     const anyDone = ids.some((id) => logMap.get(id)?.status === 'done');
-    return { day: d.d, done: anyDone };
+    const allRest = d.items.every((it) => it.type === 'rest');
+    return { day: d.d, done: anyDone, rest: allRest };
   });
 }
 
+/**
+ * Streak = consecutive non-rest days going backwards (including today if done,
+ * otherwise from yesterday) with at least one workout done. Rest days don't
+ * break the chain — they just don't count.
+ */
 function computeStreak(
-  days: { day: string; done: boolean }[],
+  days: { day: string; done: boolean; rest: boolean }[],
   todayDay: string
 ): number {
   const order = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB', 'DOM'];
   const todayIdx = order.indexOf(todayDay);
+  const todayEntry = days.find((d) => d.day === order[todayIdx]);
+
+  let startIdx = todayIdx;
+  // If today not done yet, start counting from yesterday so streak persists
+  // until end-of-day. Today still counts if done.
+  if (todayEntry && !todayEntry.done && !todayEntry.rest) {
+    startIdx = todayIdx - 1;
+  }
+
   let streak = 0;
-  for (let i = todayIdx; i >= 0; i--) {
+  for (let i = startIdx; i >= 0; i--) {
     const found = days.find((d) => d.day === order[i]);
-    if (found?.done) streak++;
+    if (!found) break;
+    if (found.rest) continue; // rest days are passive
+    if (found.done) streak++;
     else break;
   }
   return streak;

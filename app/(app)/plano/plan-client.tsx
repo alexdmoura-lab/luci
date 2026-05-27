@@ -79,10 +79,22 @@ export function PlanClient({ initialWeek, logs, overrides }: Props) {
       />
 
       {/* Current week card */}
-      <Card className="!p-[22px]">
+      <Card
+        className={`!p-[22px] ${week.num === 8 ? 'ring-2 ring-[var(--color-accent)] ring-offset-2 ring-offset-[var(--color-paper)]' : ''}`}
+      >
         <div className="flex justify-between items-start gap-3 flex-wrap">
           <div>
-            <PhaseBadge week={week.num} phaseColor={week.phaseColor} label={week.phase} />
+            {week.num === 8 ? (
+              <span
+                className="inline-flex items-center gap-2 px-3 py-1.5 pl-2 rounded-full text-[11px] font-bold uppercase tracking-[0.12em] text-white"
+                style={{ background: 'var(--color-accent)' }}
+              >
+                <span className="w-2 h-2 rounded-full bg-white" />
+                semana da prova
+              </span>
+            ) : (
+              <PhaseBadge week={week.num} phaseColor={week.phaseColor} label={week.phase} />
+            )}
             <div className="font-serif text-[28px] font-medium leading-none tracking-[-0.02em] mt-2.5">
               semana <span className="tab-num">{String(week.num).padStart(2, '0')}</span>
             </div>
