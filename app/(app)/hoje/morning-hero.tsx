@@ -40,22 +40,27 @@ export function MorningHero({
   autoOpenLog = false,
 }: Props) {
   const router = useRouter();
-  const shouldAutoOpen = autoOpenLog && !!item && item.type !== 'rest';
+  // Apply override BEFORE deciding whether to auto-open the log modal
+  const effectiveType = item
+    ? ((override?.new_type as WorkoutItem['type']) ?? item.type)
+    : undefined;
+  const shouldAutoOpen =
+    autoOpenLog && !!item && effectiveType !== undefined && effectiveType !== 'rest';
   const [openLog, setOpenLog] = useState<boolean>(shouldAutoOpen);
   const [pulse, setPulse] = useState(false);
   const urlCleaned = useRef(false);
 
   // Clear the ?log=1 query param after auto-opening (ref guard, no setState in effect)
   useEffect(() => {
-    if (shouldAutoOpen && !urlCleaned.current) {
+    if (autoOpenLog && !urlCleaned.current) {
       urlCleaned.current = true;
       router.replace('/hoje', { scroll: false });
     }
-  }, [shouldAutoOpen, router]);
+  }, [autoOpenLog, router]);
 
   if (!item) return null;
 
-  const type = (override?.new_type as WorkoutItem['type']) ?? item.type;
+  const type = effectiveType!;
   const label = override?.new_label ?? item.label;
   const detail = override?.new_detail ?? item.detail;
   const isDone = log?.status === 'done';
@@ -127,8 +132,8 @@ export function MorningHero({
               treinos da semana
             </div>
           </div>
-          <div className="w-[140px] shrink-0">
-            <HalfGauge value={weekDone} max={Math.max(1, weekPlan)} size={140} label={`${pct}%`} />
+          <div className="w-[120px] sm:w-[140px] shrink-0">
+            <HalfGauge value={weekDone} max={Math.max(1, weekPlan)} size={140} responsive label={`${pct}%`} />
           </div>
         </div>
 

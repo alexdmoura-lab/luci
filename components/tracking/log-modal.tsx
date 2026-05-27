@@ -192,8 +192,10 @@ export function LogModal({ workoutId, workout, current, onClose }: Props) {
                     <div className="flex items-baseline">
                       <input
                         type="number"
+                        min={0}
+                        max={20}
                         value={paceMin}
-                        onChange={(e) => setPaceMin(Math.max(0, Number(e.target.value)))}
+                        onChange={(e) => setPaceMin(Math.max(0, Math.min(20, Number(e.target.value))))}
                         className="bg-transparent border-0 outline-none font-serif tab-num text-[32px] font-medium w-[50px] text-center text-[var(--color-ink)] tracking-[-0.02em]"
                       />
                       <span className="font-serif text-[32px] text-[var(--color-muted)]">:</span>
@@ -217,8 +219,14 @@ export function LogModal({ workoutId, workout, current, onClose }: Props) {
                   <div className="flex items-baseline gap-1">
                     <input
                       type="number"
+                      min={40}
+                      max={220}
                       value={hr}
-                      onChange={(e) => setHr(Number(e.target.value))}
+                      onChange={(e) => {
+                        const n = Number(e.target.value);
+                        if (e.target.value === '') return setHr(0);
+                        setHr(Math.max(40, Math.min(220, n)));
+                      }}
                       className="bg-transparent border-0 outline-none font-serif tab-num text-[28px] font-medium w-[70px] text-[var(--color-ink)] tracking-[-0.02em]"
                     />
                     <span className="text-xs text-[var(--color-muted)]">bpm</span>
@@ -256,8 +264,13 @@ export function LogModal({ workoutId, workout, current, onClose }: Props) {
                     <input
                       type="number"
                       step="0.1"
+                      min={0}
+                      max={100}
                       value={distance}
-                      onChange={(e) => setDistance(e.target.value)}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        if (v === '' || Number(v) >= 0) setDistance(v);
+                      }}
                       placeholder="—"
                       className="bg-transparent border-0 outline-none font-serif tab-num text-[24px] font-medium w-[80px] text-[var(--color-ink)] placeholder-[var(--color-muted)]"
                     />

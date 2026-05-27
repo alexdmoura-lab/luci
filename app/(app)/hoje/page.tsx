@@ -1,7 +1,14 @@
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
-import { WEEKS, type WorkoutType } from '@/lib/plan-data';
-import { currentWeekNum, todayDayCode, todayISO, nextDayCode } from '@/lib/dates';
+import { WEEKS, type WorkoutType, PLAN_START } from '@/lib/plan-data';
+import {
+  currentWeekNum,
+  todayDayCode,
+  todayISO,
+  nextDayCode,
+  daysBetween,
+  isRaceOver,
+} from '@/lib/dates';
 import { workoutId } from '@/lib/workout-id';
 import { getDailyLog, getOverrides, getWorkoutLogs } from '@/lib/queries';
 import { DAY_LABELS, DAY_INITIALS } from '@/lib/day-helpers';
@@ -46,6 +53,15 @@ export default async function HojePage({
 }) {
   const params = (await searchParams) ?? {};
   const autoOpenLog = params.log === '1';
+
+  // Edge states: before plan starts / after race
+  const daysToStart = daysBetween(todayISO(), PLAN_START);
+  if (daysToStart > 0) {
+    return <PrePlanState daysToStart={daysToStart} />;
+  }
+  if (isRaceOver()) {
+    return <PostRaceState />;
+  }
 
   const weekNum = currentWeekNum();
   const week = WEEKS.find((w) => w.num === weekNum)!;
@@ -236,4 +252,50 @@ function computeStreak(
     else break;
   }
   return streak;
+}
+
+
+function PrePlanState({ daysToStart }: { daysToStart: number }) {
+  return (
+    <div className="space-y-4 pt-8">
+      <header>
+        <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--color-muted)]">
+          ainda não
+        </div>
+        <h1 className="font-serif text-[32px] font-medium leading-none mt-1.5 tracking-[-0.025em]">
+          o plano <span className="italic text-[var(--color-accent-deep)]">começa em</span>
+          <br />
+          <span className="font-serif tab-num">{daysToStart}</span>{" "}
+          {daysToStart === 1 ? "dia" : "dias"}.
+        </h1>
+      </header>
+      <Card variant="soft" className="text-center !py-6">
+        <div className="font-serif italic text-base text-[var(--color-ink-soft)] leading-relaxed">
+          descansa. lê. dorme bem.<br />a semana 1 sobe sábado, dia 25.
+        </div>
+      </Card>
+      <Countdown />
+    </div>
+  );
+}
+
+function PostRaceState() {
+  return (
+    <div className="space-y-4 pt-8">
+      <header>
+        <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--color-muted)]">
+          plano · concluído
+        </div>
+        <h1 className="font-serif text-[32px] font-medium leading-none mt-1.5 tracking-[-0.025em]">
+          tu correu.<br />
+          <span className="italic text-[var(--color-accent-deep)]">o resto é história.</span>
+        </h1>
+      </header>
+      <Card variant="soft" className="text-center !py-6">
+        <div className="font-serif italic text-base text-[var(--color-ink-soft)] leading-relaxed">
+          olha o que ficou em /progresso.<br />a próxima começa quando tu quiser.
+        </div>
+      </Card>
+    </div>
+  );
 }

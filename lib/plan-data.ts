@@ -170,7 +170,7 @@ export const WEEKS: WeekPlan[] = [
     num: 7, dates: '07 – 13/jul', phase: 'Polimento', phaseColor: 'blue',
     title: 'Polimento',
     runVol: 40, swimVol: '2.4 km', strength: 'só ativação',
-    note: 'Volume cai. Intensidade fica. Você vai sentir as pernas estranhas — é o taper.',
+    note: 'Volume cai. Intensidade fica. As pernas vão ficar estranhas — é o taper.',
     days: [
       { d: 'SEG', items: [{ type: 'rest', label: 'Descanso' }] },
       { d: 'TER', items: [{ type: 'swim', label: 'CSS curto 1.4k', detail: '5×100m @ CSS (1:52) + 4×50m @ R2 (1:48)' }] },
