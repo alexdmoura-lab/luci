@@ -3,15 +3,35 @@ import { workoutId } from '@/lib/workout-id';
 import { getDailyLogs, getWorkoutLogs } from '@/lib/queries';
 import { paceSecToString } from '@/lib/format';
 import { DAY_LABELS } from '@/lib/day-helpers';
+import { createClient } from '@/lib/supabase/server';
+import { stravaConfigured } from '@/lib/strava/tokens';
 
 import { Card, Label } from '@/components/ui/card';
 import { CoachHint } from '@/components/ui/coach-hint';
 import { Sparkline } from '@/components/progress/sparkline';
 import { WorkoutIcon } from '@/components/ui/workout-icon';
+import { StravaCard } from '@/components/progress/strava-card';
 
 export const dynamic = 'force-dynamic';
 
-export default async function ProgressoPage() {
+type SearchParams = Promise<{ strava?: string }>;
+
+export default async function ProgressoPage({
+  searchParams,
+}: {
+  searchParams?: SearchParams;
+}) {
+  const params = (await searchParams) ?? {};
+  const stravaFlash = params.strava ?? null;
+
+  // Load Strava token row (if any) to know connection status
+  const supabase = await createClient();
+  const { data: stravaToken } = await supabase
+    .from('strava_tokens')
+    .select('athlete_firstname')
+    .maybeSingle();
+  const stravaConnected = !!stravaToken;
+  const athleteName = (stravaToken?.athlete_firstname as string | null) ?? null;
   const allIds = WEEKS.flatMap((w) =>
     w.days.flatMap((d) =>
       d.items.map((it, i) => ({
@@ -95,6 +115,14 @@ export default async function ProgressoPage() {
           <span className="italic text-[var(--color-accent-deep)]">contam.</span>
         </h1>
       </header>
+
+      {stravaConfigured() && (
+        <StravaCard
+          connected={stravaConnected}
+          athleteName={athleteName}
+          flash={stravaFlash}
+        />
+      )}
 
       {!hasAnyData && (
         <Card variant="soft" className="text-center !py-8">
