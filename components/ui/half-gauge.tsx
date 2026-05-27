@@ -5,7 +5,10 @@ import { useEffect, useState, useId } from 'react';
 type Props = {
   value: number;
   max?: number;
+  /** Used as max width (or fixed width when responsive=false). */
   size?: number;
+  /** When true, the gauge scales to fill its container (up to `size`). */
+  responsive?: boolean;
   label?: React.ReactNode;
   topLabel?: React.ReactNode;
   sublabel?: React.ReactNode;
@@ -19,6 +22,7 @@ export function HalfGauge({
   value,
   max = 100,
   size = 200,
+  responsive = false,
   label,
   topLabel,
   sublabel,
@@ -41,8 +45,16 @@ export function HalfGauge({
   const capY = cy - Math.sin(Math.PI - Math.PI * animPct) * r;
 
   return (
-    <div className="relative flex flex-col items-center" style={{ width: size }}>
-      <svg viewBox="0 0 200 110" width={size} height={size * 0.55}>
+    <div
+      className="relative flex flex-col items-center"
+      style={responsive ? { width: '100%', maxWidth: size } : { width: size }}
+    >
+      <svg
+        viewBox="0 0 200 110"
+        width={responsive ? '100%' : size}
+        height={responsive ? undefined : size * 0.55}
+        preserveAspectRatio="xMidYMid meet"
+      >
         <defs>
           <linearGradient id={gradId} x1="0" y1="0" x2="1" y2="0">
             <stop offset="0%" stopColor="#FF8A50" />

@@ -190,7 +190,7 @@ export function PlanClient({ initialWeek, logs, overrides }: Props) {
                 item={item}
                 log={logMap.get(id)}
                 override={overrideMap.get(id)}
-                dayLabel={DAY_LABELS[d.d]}
+                dayLabel={i === 0 ? DAY_LABELS[d.d] : undefined}
                 isToday={isToday}
               />
             );
