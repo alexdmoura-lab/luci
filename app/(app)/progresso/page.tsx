@@ -268,29 +268,36 @@ export default async function ProgressoPage() {
               return (
                 <div
                   key={l.id}
-                  className="rounded-[24px] bg-[var(--color-card)] p-3.5 flex items-center gap-3"
+                  className="rounded-[24px] bg-[var(--color-card)] p-3.5"
                   style={{ boxShadow: 'var(--shadow-soft)' }}
                 >
-                  <WorkoutIcon
-                    type={(meta?.type as 'run') ?? 'run'}
-                    size={40}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <Label className="mb-0.5">{dateLabel}</Label>
-                    <div className="font-serif text-[15px] font-medium leading-[1.1] text-[var(--color-ink)] truncate">
-                      {meta?.label ?? l.workout_id}
-                    </div>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <div className="tab-num text-sm font-bold text-[var(--color-ink)]">
-                      {metric1}
-                    </div>
-                    {metric2 && (
-                      <div className="text-[10px] text-[var(--color-muted)] mt-0.5">
-                        {metric2}
+                  <div className="flex items-center gap-3">
+                    <WorkoutIcon type={(meta?.type as 'run') ?? 'run'} size={40} />
+                    <div className="flex-1 min-w-0">
+                      <Label className="mb-0.5">{dateLabel}</Label>
+                      <div className="font-serif text-[15px] font-medium leading-[1.1] text-[var(--color-ink)] truncate">
+                        {meta?.label ?? l.workout_id}
                       </div>
-                    )}
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className="tab-num text-sm font-bold text-[var(--color-ink)]">
+                        {metric1}
+                      </div>
+                      {metric2 && (
+                        <div className="text-[10px] text-[var(--color-muted)] mt-0.5">
+                          {metric2}
+                        </div>
+                      )}
+                    </div>
                   </div>
+                  {l.notes && (
+                    <div
+                      className="mt-2.5 pl-[52px] text-[12px] italic text-[var(--color-ink-soft)] font-serif leading-snug"
+                      style={{ fontVariationSettings: "'SOFT' 100, 'opsz' 14" }}
+                    >
+                      &ldquo;{l.notes}&rdquo;
+                    </div>
+                  )}
                 </div>
               );
             })}

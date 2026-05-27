@@ -32,8 +32,13 @@ export function daysBetween(aISO: string, bISO: string): number {
   return Math.round((b - a) / (1000 * 60 * 60 * 24));
 }
 
+/** Dias até a prova. Negativo se a prova já passou. */
 export function daysUntilRace(now = new Date()): number {
-  return Math.max(0, daysBetween(todayISO(now), RACE_DATE));
+  return daysBetween(todayISO(now), RACE_DATE);
+}
+
+export function isRaceOver(now = new Date()): boolean {
+  return daysUntilRace(now) < 0;
 }
 
 /** Semana atual do plano (1..8). Antes do início retorna 1, depois retorna 8. */
